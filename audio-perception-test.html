@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audio Perception Test — Hansen Garrett Firdaus</title>
+<style>
+  :root {
+    --bg: #F7F6F3;
+    --surface: #FFFFFF;
+    --surface2: #F0EEE9;
+    --border: #E2DED6;
+    --border2: #C8C4BB;
+    --text: #1A1916;
+    --text2: #5C5A54;
+    --text3: #9A978F;
+    --blue: #1A56DB;
+    --blue-bg: #EEF3FF;
+    --blue-border: #C3D0F7;
+    --green: #0E7B4A;
+    --green-bg: #ECFDF5;
+    --green-border: #A7F3D0;
+    --red: #B91C1C;
+    --red-bg: #FEF2F2;
+    --red-border: #FECACA;
+    --amber: #92400E;
+    --amber-bg: #FFFBEB;
+    --amber-border: #FDE68A;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .container { max-width: 680px; margin: 0 auto; }
+
+  /* Header */
+  .header { text-align: center; margin-bottom: 2.5rem; }
+  .header-eyebrow {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--blue);
+    background: var(--blue-bg); border: 1px solid var(--blue-border);
+    padding: 4px 12px; border-radius: 99px; margin-bottom: 1rem;
+  }
+  .header h1 { font-size: 26px; font-weight: 700; line-height: 1.25; margin-bottom: .4rem; letter-spacing: -.02em; }
+  .header h1 span { color: var(--text3); display: block; font-size: 14px; font-weight: 400; letter-spacing: 0; margin-top: .2rem; }
+  .header-meta { font-size: 12px; color: var(--text3); margin-top: .5rem; }
+
+  /* Instruction card */
+  .instruction {
+    background: var(--amber-bg); border: 1px solid var(--amber-border);
+    border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1.75rem;
+  }
+  .instruction-title { font-size: 13px; font-weight: 600; color: var(--amber); margin-bottom: .5rem; display: flex; align-items: center; gap: 6px; }
+  .instruction p { font-size: 13px; color: #78350F; line-height: 1.65; margin-bottom: .35rem; }
+  .instruction p:last-child { margin-bottom: 0; }
+  .instruction em { font-style: normal; color: #92400E; font-weight: 500; }
+
+  /* Progress */
+  .progress-wrap { margin-bottom: 1.5rem; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text3); margin-bottom: .4rem; }
+  .progress-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--blue); border-radius: 2px; transition: width .4s ease; }
+
+  /* Clip card */
+  .clip-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden; margin-bottom: 1rem;
+    transition: border-color .2s;
+  }
+  .clip-card.answered { border-color: var(--border2); }
+  .clip-card.correct-card { border-color: var(--green-border); }
+  .clip-card.wrong-card { border-color: var(--red-border); }
+
+  .clip-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .85rem 1.25rem .65rem; border-bottom: 1px solid var(--border);
+  }
+  .clip-num { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; }
+  .clip-status { font-size: 11px; color: var(--text3); }
+
+  .clip-body { padding: .85rem 1.25rem; }
+
+  /* Player */
+  .player { display: flex; align-items: center; gap: .75rem; margin-bottom: .85rem; }
+  .play-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--blue); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: background .15s, transform .1s;
+  }
+  .play-btn:hover { background: #1547C0; }
+  .play-btn:active { transform: scale(.95); }
+  .play-btn svg { width: 14px; height: 14px; fill: white; }
+  .play-btn.playing { background: var(--text2); }
+
+  .player-right { flex: 1; }
+  .waveform-wrap { position: relative; height: 36px; margin-bottom: .3rem; cursor: pointer; }
+  .waveform-bg { display: flex; align-items: center; gap: 2px; height: 100%; }
+  .waveform-bg .bar {
+    flex: 1; border-radius: 2px; background: var(--border2); transition: background .15s;
+    transform-origin: center;
+  }
+  .waveform-progress {
+    position: absolute; top: 0; left: 0; height: 100%; overflow: hidden;
+    pointer-events: none;
+  }
+  .waveform-progress .bar-fill { background: var(--blue); }
+  .waveform-progress-inner { display: flex; align-items: center; gap: 2px; height: 100%; }
+
+  .time-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--text3); font-variant-numeric: tabular-nums; }
+
+  /* Bilingual answer prompt */
+  .ans-prompt { font-size: 13px; color: var(--text2); margin-bottom: .65rem; line-height: 1.5; }
+  .ans-prompt span { color: var(--text3); }
+
+  .ans-row { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+  .ans-btn {
+    border: 1.5px solid var(--border); background: var(--surface2);
+    border-radius: var(--radius-sm); padding: .6rem .75rem;
+    cursor: pointer; text-align: center; transition: all .15s;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+  }
+  .ans-btn:hover { border-color: var(--border2); background: var(--surface); }
+  .ans-btn:active { transform: scale(.98); }
+  .ans-btn .btn-main { font-size: 13px; font-weight: 600; color: var(--text); }
+  .ans-btn .btn-sub { font-size: 11px; color: var(--text3); }
+  .ans-btn.selected-real { border-color: var(--green); background: var(--green-bg); }
+  .ans-btn.selected-real .btn-main { color: var(--green); }
+  .ans-btn.selected-fake { border-color: var(--red); background: var(--red-bg); }
+  .ans-btn.selected-fake .btn-main { color: var(--red); }
+  .ans-btn:disabled { cursor: not-allowed; opacity: .7; }
+
+  /* Reveal */
+  .reveal {
+    margin-top: .75rem; padding: .75rem 1rem;
+    border-radius: var(--radius-sm); border: 1px solid;
+    display: none;
+  }
+  .reveal.correct { background: var(--green-bg); border-color: var(--green-border); }
+  .reveal.wrong { background: var(--red-bg); border-color: var(--red-border); }
+  .reveal-top { display: flex; align-items: center; gap: .5rem; margin-bottom: .3rem; }
+  .reveal-icon { font-size: 16px; }
+  .reveal-verdict { font-size: 13px; font-weight: 600; }
+  .reveal.correct .reveal-verdict { color: var(--green); }
+  .reveal.wrong .reveal-verdict { color: var(--red); }
+  .reveal-desc { font-size: 12px; line-height: 1.55; }
+  .reveal.correct .reveal-desc { color: #065F46; }
+  .reveal.wrong .reveal-desc { color: #991B1B; }
+
+  /* Submit */
+  .submit-wrap { text-align: center; margin: 1.5rem 0; }
+  .submit-btn {
+    background: var(--blue); color: white; border: none;
+    padding: .75rem 2rem; border-radius: var(--radius-sm);
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: background .15s, transform .1s; opacity: .4;
+    pointer-events: none;
+  }
+  .submit-btn.active { opacity: 1; pointer-events: all; }
+  .submit-btn.active:hover { background: #1547C0; }
+  .submit-btn.active:active { transform: scale(.98); }
+  .submit-hint { font-size: 12px; color: var(--text3); margin-top: .5rem; }
+
+  /* Results */
+  .results { display: none; }
+  .results-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem;
+    text-align: center;
+  }
+  .score-big { font-size: 52px; font-weight: 700; letter-spacing: -.03em; line-height: 1; margin-bottom: .25rem; }
+  .score-label { font-size: 13px; color: var(--text3); margin-bottom: 1.25rem; }
+  .score-label span { color: var(--text2); }
+  .score-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; }
+  .score-cell { background: var(--surface2); border-radius: var(--radius-sm); padding: .65rem .5rem; }
+  .score-cell-num { font-size: 20px; font-weight: 700; color: var(--text); }
+  .score-cell-lbl { font-size: 11px; color: var(--text3); margin-top: .2rem; line-height: 1.4; }
+
+  .results-note {
+    background: var(--blue-bg); border: 1px solid var(--blue-border);
+    border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1rem;
+  }
+  .results-note-title { font-size: 13px; font-weight: 600; color: var(--blue); margin-bottom: .4rem; }
+  .results-note p { font-size: 13px; color: #1E40AF; line-height: 1.65; }
+  .results-note .score-box {
+    background: white; border: 1px solid var(--blue-border);
+    border-radius: var(--radius-sm); padding: .6rem 1rem;
+    font-size: 20px; font-weight: 700; color: var(--blue);
+    display: inline-block; margin: .65rem 0; letter-spacing: -.01em;
+  }
+
+  .footer { text-align: center; margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+  .footer p { font-size: 12px; color: var(--text3); line-height: 1.7; }
+  .footer strong { color: var(--text2); font-weight: 500; }
+
+  @media (max-width: 480px) {
+    .header h1 { font-size: 21px; }
+    .ans-btn .btn-main { font-size: 12px; }
+    .score-big { font-size: 40px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="header-eyebrow">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 19V6l12-3v13M9 19c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12-3c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z"/></svg>
+      Tes Persepsi Audio · Audio Perception Test
+    </div>
+    <h1>
+      Asli atau Palsu?
+      <span>Real or Fake? — Can you tell the difference?</span>
+    </h1>
+    <div class="header-meta">Penelitian TA · Hansen Garrett Firdaus (NRP: 160423131)</div>
+  </div>
+
+  <div class="instruction">
+    <div class="instruction-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Petunjuk · Instructions
+    </div>
+    <p>🇮🇩 Dengarkan setiap klip audio, lalu pilih apakah menurutmu itu suara <em>manusia asli (Real)</em> atau <em>buatan AI (Fake)</em>. Jawab berdasarkan insting pertamamu — tidak ada kesempatan untuk mengubah jawaban.</p>
+    <p>🇬🇧 Listen to each audio clip and decide whether it is a <em>real human voice (Real)</em> or <em>AI-generated (Fake)</em>. Go with your first instinct — answers cannot be changed once selected.</p>
+    <p style="margin-top:.5rem; font-size:12px; color:#92400E;">⏱ Estimasi waktu · Estimated time: 3–5 menit · minutes</p>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span id="prog-text">0 dari 4 dijawab · 0 of 4 answered</span>
+      <span id="prog-pct">0%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+
+  <!-- ===================== CLIP CARDS ===================== -->
+  <!-- 
+    PANDUAN PENGISIAN AUDIO UNTUK PENELITI:
+    Ganti nilai `data-src` di setiap .clip-card dengan URL file audio kamu.
+    
+    Format yang didukung: .mp3, .wav, .ogg, .m4a
+    
+    Opsi hosting audio:
+    1. GitHub Pages: upload ke repo, gunakan raw URL
+       contoh: https://username.github.io/repo/audio/clip1.wav
+    2. Google Drive: ubah ke link direct download
+       contoh: https://drive.google.com/uc?export=download&id=FILE_ID
+    3. Netlify / Vercel: taruh file di folder /public
+    
+    data-answer: "real" untuk suara asli, "fake" untuk suara AI
+    data-explain-id: penjelasan dalam Bahasa Indonesia (maks 2 kalimat)
+    data-explain-en: penjelasan dalam Bahasa Inggris (maks 2 sentences)
+  -->
+
+  <div class="clip-card" id="card-1"
+    data-src="GANTI_DENGAN_URL_AUDIO_KLIP_1.wav"
+    data-answer="fake"
+    data-explain-id="Klip ini dihasilkan oleh sistem TTS (Text-to-Speech) dari dataset ASVspoof 2019. Perhatikan intonasi yang terlalu rata dan transisi antar kata yang tidak alami."
+    data-explain-en="This clip was generated by a TTS system from the ASVspoof 2019 dataset. Notice the overly flat intonation and unnatural word transitions.">
+    <div class="clip-header">
+      <div class="clip-num">Klip · Clip 01</div>
+      <div class="clip-status" id="status-1">Belum dijawab · Unanswered</div>
+    </div>
+    <div class="clip-body">
+      <div class="player">
+        <button class="play-btn" id="play-1" aria-label="Play clip 1">
+          <svg id="play-icon-1" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+        </button>
+        <div class="player-right">
+          <div class="waveform-wrap" id="waveform-1">
+            <div class="waveform-bg" id="wbg-1"></div>
+            <div class="waveform-progress" id="wprog-1" style="width:0%">
+              <div class="waveform-progress-inner" id="wfill-1"></div>
+            </div>
+          </div>
+          <div class="time-row">
+            <span id="cur-1">0:00</span>
+            <span id="dur-1">–:––</span>
+          </div>
+        </div>
+      </div>
+      <div class="ans-prompt">Menurutmu, suara ini: <span>· In your opinion, this voice is:</span></div>
+      <div class="ans-row">
+        <button class="ans-btn" id="btn-real-1" onclick="answer(1,'real')">
+          <span class="btn-main">✔ Asli · Real</span>
+          <span class="btn-sub">Suara manusia · Human voice</span>
+        </button>
+        <button class="ans-btn" id="btn-fake-1" onclick="answer(1,'fake')">
+          <span class="btn-main">✘ Palsu · Fake</span>
+          <span class="btn-sub">Buatan AI · AI-generated</span>
+        </button>
+      </div>
+      <div class="reveal" id="reveal-1"></div>
+    </div>
+  </div>
+
+  <div class="clip-card" id="card-2"
+    data-src="GANTI_DENGAN_URL_AUDIO_KLIP_2.wav"
+    data-answer="real"
+    data-explain-id="Klip ini adalah rekaman suara manusia asli dari dataset ASVspoof 2019 (kategori bonafide). Perhatikan variasi intonasi dan jeda napas yang alami."
+    data-explain-en="This clip is a genuine human voice recording from the ASVspoof 2019 dataset (bonafide category). Notice the natural pitch variation and breathing pauses.">
+    <div class="clip-header">
+      <div class="clip-num">Klip · Clip 02</div>
+      <div class="clip-status" id="status-2">Belum dijawab · Unanswered</div>
+    </div>
+    <div class="clip-body">
+      <div class="player">
+        <button class="play-btn" id="play-2" aria-label="Play clip 2">
+          <svg id="play-icon-2" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+        </button>
+        <div class="player-right">
+          <div class="waveform-wrap" id="waveform-2">
+            <div class="waveform-bg" id="wbg-2"></div>
+            <div class="waveform-progress" id="wprog-2" style="width:0%">
+              <div class="waveform-progress-inner" id="wfill-2"></div>
+            </div>
+          </div>
+          <div class="time-row">
+            <span id="cur-2">0:00</span>
+            <span id="dur-2">–:––</span>
+          </div>
+        </div>
+      </div>
+      <div class="ans-prompt">Menurutmu, suara ini: <span>· In your opinion, this voice is:</span></div>
+      <div class="ans-row">
+        <button class="ans-btn" id="btn-real-2" onclick="answer(2,'real')">
+          <span class="btn-main">✔ Asli · Real</span>
+          <span class="btn-sub">Suara manusia · Human voice</span>
+        </button>
+        <button class="ans-btn" id="btn-fake-2" onclick="answer(2,'fake')">
+          <span class="btn-main">✘ Palsu · Fake</span>
+          <span class="btn-sub">Buatan AI · AI-generated</span>
+        </button>
+      </div>
+      <div class="reveal" id="reveal-2"></div>
+    </div>
+  </div>
+
+  <div class="clip-card" id="card-3"
+    data-src="GANTI_DENGAN_URL_AUDIO_KLIP_3.wav"
+    data-answer="real"
+    data-explain-id="Klip ini adalah rekaman suara manusia asli. Meskipun terdengar jernih, variasi mikro dalam pitch dan ritme bicara menunjukkan karakteristik suara organik."
+    data-explain-en="This is a genuine human voice recording. Although it sounds clean, micro-variations in pitch and speech rhythm reveal organic vocal characteristics.">
+    <div class="clip-header">
+      <div class="clip-num">Klip · Clip 03</div>
+      <div class="clip-status" id="status-3">Belum dijawab · Unanswered</div>
+    </div>
+    <div class="clip-body">
+      <div class="player">
+        <button class="play-btn" id="play-3" aria-label="Play clip 3">
+          <svg id="play-icon-3" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+        </button>
+        <div class="player-right">
+          <div class="waveform-wrap" id="waveform-3">
+            <div class="waveform-bg" id="wbg-3"></div>
+            <div class="waveform-progress" id="wprog-3" style="width:0%">
+              <div class="waveform-progress-inner" id="wfill-3"></div>
+            </div>
+          </div>
+          <div class="time-row">
+            <span id="cur-3">0:00</span>
+            <span id="dur-3">–:––</span>
+          </div>
+        </div>
+      </div>
+      <div class="ans-prompt">Menurutmu, suara ini: <span>· In your opinion, this voice is:</span></div>
+      <div class="ans-row">
+        <button class="ans-btn" id="btn-real-3" onclick="answer(3,'real')">
+          <span class="btn-main">✔ Asli · Real</span>
+          <span class="btn-sub">Suara manusia · Human voice</span>
+        </button>
+        <button class="ans-btn" id="btn-fake-3" onclick="answer(3,'fake')">
+          <span class="btn-main">✘ Palsu · Fake</span>
+          <span class="btn-sub">Buatan AI · AI-generated</span>
+        </button>
+      </div>
+      <div class="reveal" id="reveal-3"></div>
+    </div>
+  </div>
+
+  <div class="clip-card" id="card-4"
+    data-src="GANTI_DENGAN_URL_AUDIO_KLIP_4.wav"
+    data-answer="fake"
+    data-explain-id="Klip ini dihasilkan oleh algoritma voice conversion yang mengubah suara seorang pembicara menjadi suara pembicara lain. Artefak berupa suara 'robotic' kadang terdengar samar di ujung kata."
+    data-explain-en="This clip was produced by a voice conversion algorithm that transforms one speaker's voice into another's. Robotic artifacts can sometimes be faintly heard at word endings.">
+    <div class="clip-header">
+      <div class="clip-num">Klip · Clip 04</div>
+      <div class="clip-status" id="status-4">Belum dijawab · Unanswered</div>
+    </div>
+    <div class="clip-body">
+      <div class="player">
+        <button class="play-btn" id="play-4" aria-label="Play clip 4">
+          <svg id="play-icon-4" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+        </button>
+        <div class="player-right">
+          <div class="waveform-wrap" id="waveform-4">
+            <div class="waveform-bg" id="wbg-4"></div>
+            <div class="waveform-progress" id="wprog-4" style="width:0%">
+              <div class="waveform-progress-inner" id="wfill-4"></div>
+            </div>
+          </div>
+          <div class="time-row">
+            <span id="cur-4">0:00</span>
+            <span id="dur-4">–:––</span>
+          </div>
+        </div>
+      </div>
+      <div class="ans-prompt">Menurutmu, suara ini: <span>· In your opinion, this voice is:</span></div>
+      <div class="ans-row">
+        <button class="ans-btn" id="btn-real-4" onclick="answer(4,'real')">
+          <span class="btn-main">✔ Asli · Real</span>
+          <span class="btn-sub">Suara manusia · Human voice</span>
+        </button>
+        <button class="ans-btn" id="btn-fake-4" onclick="answer(4,'fake')">
+          <span class="btn-main">✘ Palsu · Fake</span>
+          <span class="btn-sub">Buatan AI · AI-generated</span>
+        </button>
+      </div>
+      <div class="reveal" id="reveal-4"></div>
+    </div>
+  </div>
+
+  <div class="submit-wrap">
+    <button class="submit-btn" id="submit-btn" onclick="showResults()">
+      Lihat Hasil Saya · See My Results
+    </button>
+    <div class="submit-hint" id="submit-hint">Jawab semua klip terlebih dahulu · Answer all clips first</div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results" id="results">
+    <div class="results-card">
+      <div class="score-big" id="res-score">–</div>
+      <div class="score-label">jawaban benar dari 4 klip · <span>correct out of 4 clips</span></div>
+      <div class="score-grid">
+        <div class="score-cell">
+          <div class="score-cell-num" id="res-pct">–</div>
+          <div class="score-cell-lbl">Akurasi · Accuracy</div>
+        </div>
+        <div class="score-cell">
+          <div class="score-cell-num" id="res-fooled">–</div>
+          <div class="score-cell-lbl">Tertipu AI · Fooled by AI</div>
+        </div>
+        <div class="score-cell">
+          <div class="score-cell-num" id="res-missed">–</div>
+          <div class="score-cell-lbl">Asli dikira palsu · Real misidentified</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="results-note">
+      <div class="results-note-title">📋 Kembali ke Google Form · Return to Google Form</div>
+      <p>🇮🇩 Catat skormu di bawah ini, lalu kembali ke tab Google Form dan isi pertanyaan lanjutan dengan angka ini:</p>
+      <p>🇬🇧 Note your score below, then return to the Google Form tab and fill in the follow-up question with this number:</p>
+      <div class="score-box" id="res-score-box">–/4</div>
+      <p style="font-size:12px; margin-top:.25rem;">Pertanyaan di form: "Berapa klip yang berhasil Anda tebak dengan benar?" · <em>"How many clips did you identify correctly?"</em></p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>
+      <strong>Sistem Klasifikasi Audio Sintetis Ciptaan AI</strong><br>
+      Menggunakan SE-Enhanced 1D Convolutional Neural Network<br>
+      Hansen Garrett Firdaus · NRP 160423131<br>
+      <span style="font-size:11px;">Audio clips sourced from ASVspoof 2019 dataset for academic research purposes.</span>
+    </p>
+  </div>
+
+</div>
+
+<script>
+  const TOTAL = 4;
+  const audios = {};
+  const answers = {};
+  const animFrames = {};
+
+  const HEIGHTS = [
+    [0.3,0.5,0.7,0.6,0.8,0.9,0.7,0.5,0.6,0.8,0.7,0.9,0.6,0.5,0.7,0.8,0.6,0.4,0.7,0.9,0.8,0.6,0.5,0.7,0.6,0.8,0.5,0.7,0.9,0.6],
+    [0.4,0.6,0.5,0.8,0.7,0.6,0.9,0.5,0.7,0.6,0.8,0.5,0.6,0.9,0.7,0.5,0.8,0.6,0.7,0.5,0.9,0.6,0.7,0.8,0.5,0.6,0.7,0.9,0.5,0.6],
+    [0.5,0.8,0.6,0.7,0.5,0.9,0.6,0.8,0.7,0.5,0.6,0.9,0.7,0.6,0.8,0.5,0.7,0.9,0.6,0.5,0.8,0.7,0.6,0.9,0.5,0.7,0.8,0.6,0.5,0.9],
+    [0.6,0.5,0.9,0.7,0.8,0.6,0.5,0.7,0.9,0.6,0.8,0.5,0.7,0.6,0.9,0.8,0.5,0.7,0.6,0.9,0.5,0.8,0.7,0.6,0.9,0.5,0.7,0.8,0.6,0.5]
+  ];
+
+  function buildWaveform(n) {
+    const h = HEIGHTS[n-1];
+    const bg = document.getElementById('wbg-' + n);
+    const fill = document.getElementById('wfill-' + n);
+    bg.innerHTML = '';
+    fill.innerHTML = '';
+    h.forEach(v => {
+      const barH = Math.max(4, Math.round(v * 34));
+      const b1 = document.createElement('div');
+      b1.className = 'bar';
+      b1.style.height = barH + 'px';
+      bg.appendChild(b1);
+      const b2 = document.createElement('div');
+      b2.className = 'bar bar-fill';
+      b2.style.height = barH + 'px';
+      fill.appendChild(b2);
+    });
+    const prog = document.getElementById('wprog-' + n);
+    prog.style.width = '0%';
+  }
+
+  function fmtTime(s) {
+    if (!isFinite(s)) return '–:––';
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return m + ':' + (sec < 10 ? '0' : '') + sec;
+  }
+
+  function initAudio(n) {
+    if (audios[n]) return;
+    const card = document.getElementById('card-' + n);
+    const src = card.dataset.src;
+    const audio = new Audio(src);
+    audios[n] = audio;
+
+    audio.addEventListener('loadedmetadata', () => {
+      document.getElementById('dur-' + n).textContent = fmtTime(audio.duration);
+    });
+
+    audio.addEventListener('timeupdate', () => {
+      if (!audio.duration) return;
+      const pct = (audio.currentTime / audio.duration) * 100;
+      document.getElementById('wprog-' + n).style.width = pct + '%';
+      document.getElementById('cur-' + n).textContent = fmtTime(audio.currentTime);
+    });
+
+    audio.addEventListener('ended', () => {
+      const icon = document.getElementById('play-icon-' + n);
+      const btn = document.getElementById('play-' + n);
+      icon.innerHTML = '<polygon points="5,3 19,12 5,21"/>';
+      btn.classList.remove('playing');
+    });
+  }
+
+  function togglePlay(n) {
+    initAudio(n);
+    const audio = audios[n];
+    const icon = document.getElementById('play-icon-' + n);
+    const btn = document.getElementById('play-' + n);
+
+    for (let i = 1; i <= TOTAL; i++) {
+      if (i !== n && audios[i] && !audios[i].paused) {
+        audios[i].pause();
+        document.getElementById('play-icon-' + i).innerHTML = '<polygon points="5,3 19,12 5,21"/>';
+        document.getElementById('play-' + i).classList.remove('playing');
+      }
+    }
+
+    if (audio.paused) {
+      audio.play().catch(() => {
+        document.getElementById('dur-' + n).textContent = 'Error loading';
+      });
+      icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+      btn.classList.add('playing');
+    } else {
+      audio.pause();
+      icon.innerHTML = '<polygon points="5,3 19,12 5,21"/>';
+      btn.classList.remove('playing');
+    }
+  }
+
+  document.querySelectorAll('.play-btn').forEach(btn => {
+    const n = parseInt(btn.id.replace('play-', ''));
+    btn.addEventListener('click', () => togglePlay(n));
+  });
+
+  document.querySelectorAll('.waveform-wrap').forEach(wrap => {
+    const n = parseInt(wrap.id.replace('waveform-', ''));
+    wrap.addEventListener('click', (e) => {
+      initAudio(n);
+      const audio = audios[n];
+      if (!audio.duration) return;
+      const rect = wrap.getBoundingClientRect();
+      const pct = (e.clientX - rect.left) / rect.width;
+      audio.currentTime = pct * audio.duration;
+    });
+  });
+
+  function answer(n, choice) {
+    if (answers[n]) return;
+    answers[n] = choice;
+
+    const card = document.getElementById('card-' + n);
+    const correctAns = card.dataset.answer;
+    const isCorrect = choice === correctAns;
+    const explainId = card.dataset.explainId;
+    const explainEn = card.dataset.explainEn;
+
+    document.getElementById('btn-real-' + n).disabled = true;
+    document.getElementById('btn-fake-' + n).disabled = true;
+
+    if (choice === 'real') {
+      document.getElementById('btn-real-' + n).classList.add('selected-real');
+    } else {
+      document.getElementById('btn-fake-' + n).classList.add('selected-fake');
+    }
+
+    const statusEl = document.getElementById('status-' + n);
+    const revealEl = document.getElementById('reveal-' + n);
+
+    if (isCorrect) {
+      card.classList.add('correct-card');
+      statusEl.textContent = '✔ Benar · Correct';
+      statusEl.style.color = 'var(--green)';
+      revealEl.className = 'reveal correct';
+      revealEl.innerHTML = `
+        <div class="reveal-top">
+          <span class="reveal-icon">✅</span>
+          <span class="reveal-verdict">Benar! · Correct! — Ini memang ${correctAns === 'real' ? 'suara asli · a real voice' : 'suara AI · AI-generated'}</span>
+        </div>
+        <div class="reveal-desc">🇮🇩 ${explainId}<br>🇬🇧 ${explainEn}</div>`;
+    } else {
+      card.classList.add('wrong-card');
+      statusEl.textContent = '✘ Salah · Incorrect';
+      statusEl.style.color = 'var(--red)';
+      revealEl.className = 'reveal wrong';
+      revealEl.innerHTML = `
+        <div class="reveal-top">
+          <span class="reveal-icon">❌</span>
+          <span class="reveal-verdict">Salah · Incorrect — Ini sebenarnya ${correctAns === 'real' ? 'suara asli · a real voice' : 'suara AI · AI-generated'}</span>
+        </div>
+        <div class="reveal-desc">🇮🇩 ${explainId}<br>🇬🇧 ${explainEn}</div>`;
+    }
+    revealEl.style.display = 'block';
+
+    const answered = Object.keys(answers).length;
+    const pct = Math.round((answered / TOTAL) * 100);
+    document.getElementById('prog-fill').style.width = pct + '%';
+    document.getElementById('prog-text').textContent = `${answered} dari ${TOTAL} dijawab · ${answered} of ${TOTAL} answered`;
+    document.getElementById('prog-pct').textContent = pct + '%';
+
+    if (answered === TOTAL) {
+      const submitBtn = document.getElementById('submit-btn');
+      submitBtn.classList.add('active');
+      document.getElementById('submit-hint').textContent = 'Semua klip sudah dijawab · All clips answered';
+    }
+  }
+
+  function showResults() {
+    let correct = 0, fooled = 0, missed = 0;
+    for (let n = 1; n <= TOTAL; n++) {
+      const card = document.getElementById('card-' + n);
+      const correctAns = card.dataset.answer;
+      const userAns = answers[n];
+      if (userAns === correctAns) {
+        correct++;
+      } else {
+        if (correctAns === 'fake') fooled++;
+        else missed++;
+      }
+    }
+    const pct = Math.round((correct / TOTAL) * 100);
+    document.getElementById('res-score').textContent = correct + '/' + TOTAL;
+    document.getElementById('res-pct').textContent = pct + '%';
+    document.getElementById('res-fooled').textContent = fooled;
+    document.getElementById('res-missed').textContent = missed;
+    document.getElementById('res-score-box').textContent = correct + '/' + TOTAL;
+
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('submit-btn').style.display = 'none';
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  for (let i = 1; i <= TOTAL; i++) buildWaveform(i);
+</script>
+</body>
+</html>
