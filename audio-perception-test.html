@@ -243,25 +243,7 @@
     <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
   </div>
 
-  <!-- ===================== CLIP CARDS ===================== -->
-  <!-- 
-    PANDUAN PENGISIAN AUDIO UNTUK PENELITI:
-    Ganti nilai `data-src` di setiap .clip-card dengan URL file audio kamu.
-    
-    Format yang didukung: .mp3, .wav, .ogg, .m4a
-    
-    Opsi hosting audio:
-    1. GitHub Pages: upload ke repo, gunakan raw URL
-       contoh: https://username.github.io/repo/audio/clip1.wav
-    2. Google Drive: ubah ke link direct download
-       contoh: https://drive.google.com/uc?export=download&id=FILE_ID
-    3. Netlify / Vercel: taruh file di folder /public
-    
-    data-answer: "real" untuk suara asli, "fake" untuk suara AI
-    data-explain-id: penjelasan dalam Bahasa Indonesia (maks 2 kalimat)
-    data-explain-en: penjelasan dalam Bahasa Inggris (maks 2 sentences)
-  -->
-
+  
   <div class="clip-card" id="card-1"
     data-src="GANTI_DENGAN_URL_AUDIO_KLIP_1.wav"
     data-answer="fake"
@@ -651,14 +633,7 @@
       document.getElementById('submit-hint').textContent = 'Semua klip sudah dijawab · All clips answered';
     }
   }
-
-  // =============================================
-  // GANTI URL INI dengan URL Apps Script kamu
-  // Cara dapat URL: Google Sheets → Extensions →
-  // Apps Script → Deploy → New Deployment → Web app
-  // → Execute as: Me, Who has access: Anyone → Deploy
-  // =============================================
-  const APPS_SCRIPT_URL = 'GANTI_DENGAN_URL_APPS_SCRIPT_KAMU';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxhHaQqkoQzBEvNNtYfDaAQoUlBu6jVvvPj5hmKw1W3iyPCuCUvglBYJnfc_FMOwcjjsw/exec';
 
   function showResults() {
     let correct = 0, fooled = 0, missed = 0;
